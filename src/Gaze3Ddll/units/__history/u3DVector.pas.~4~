@@ -1,0 +1,389 @@
+unit u3DVector;
+ {
+  sw_14.01.2010:
+
+  IMD Vector Unit
+   SupportVector=Stützvektor
+   DirectionVector=Richtungsvektor
+   PositionVector=Ortsvektor
+}
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  StdCtrls;
+
+type TVector = record
+              x1: Double;
+              x2: Double;
+              x3: Double;
+     End;
+
+     function vector(x1, x2, x3: Double): TVector;
+     function vAddition(a, b: TVector):TVector;
+     function vSubtraction(a, b: TVector):TVector;  // b-a
+     function sMultiplication(t: Double; a: TVector):TVector;
+     function vMakeDirVector(a,b: TVector):TVector;
+     function vPoint(SV, DV: TVector; t:Double):TVector;
+     function vCrossProduct (a,b: TVector): TVector;             // = Vector Product
+     function vScalarProduct (a,b: TVector): Double;
+     function cosmosNormStuetzProdukt (s1,s2,n: TVector): Double;
+     function vCheckRelPos(SVg,DVg,SVh,DVh: TVector):Integer;   // SV:=SupportVector (Stützvektor), DV=DirectionVector (Ortsvektor) | Results: 0=Error, 1=skew, 2=intersection, 3=parallel
+     function vParallelDistance(SVg,DVg,SVh,DVh: TVector): Double;
+     function vIntersection(SVg,DVg,SVh,DVh: TVector): TVector;
+     function vSkewDistancePoint(SVg,DVg,SVh,DVh: TVector): TVector;
+//     function vDistance(g,r,h,s : TVector): Integer;
+     function vVecToStr(a: TVector): String;
+
+
+implementation
+
+uses gLogging, Math;
+
+function vector(x1, x2, x3: Double): TVector;
+begin
+  result.x1 := x1;
+  result.x2 := x2;
+  result.x3 := x3;
+end;
+
+function vAddition(a, b: TVector):TVector;
+begin
+  with result do
+   begin
+    x1 := a.x1 + b.x1;
+    x2 := a.x2 + b.x2;
+    x3 := a.x3 + b.x3;
+   end;
+end;
+
+function vSubtraction(a, b: TVector):TVector;  // b-a
+begin
+  with result do
+   begin
+    x1 := b.x1-a.x1;
+    x2 := b.x2-a.x2;
+    x3 := b.x3-a.x3;
+   end;
+end;
+
+function sMultiplication(t: Double; a: TVector):TVector;
+begin
+  with result do
+   begin
+     x1 :=t*a.x1;
+     x2 :=t*a.x2;
+     x3 :=t*a.x3;
+   end;
+end;
+
+function vMakeDirVector(a,b: TVector):TVector;
+begin
+ result:=vSubtraction(a,b);
+end;
+
+
+function vPoint(SV, DV: TVector; t:Double):TVector;           // SV = support vector; DV = direction vector
+begin
+ result := vAddition(SV,sMultiplication(t,DV));             // = PositionVector = Ortsvektor
+end;
+
+function vCrossProduct (a,b: TVector): TVector;             // = Vektor Product
+begin
+  with result do
+  begin
+    x1 := a.x2 * b.x3 - a.x3 * b.x2;
+    x2 := a.x3 * b.x1 - a.x1 * b.x3;
+    x3 := a.x1 * b.x2 - a.x2 * b.x1;
+  end;
+end;
+
+function vScalarProduct (a,b: TVector): Double;
+begin
+  result := a.x1 * b.x1 + a.x2 * b.x2 + a.x3 * b.x3;
+end;
+
+function cosmosNormStuetzProdukt (s1,s2,n: TVector): Double;
+begin
+  result := s1.x1 * n.x1 - s2.x1 * n.x1 + s1.x2 * n.x2 - s2.x2 * n.x2 + s1.x3 * n.x3 - s2.x3 * n.x3;
+end;
+
+
+function vCheckRelPos(SVg,DVg,SVh,DVh: TVector):Integer;   //Results: 0=Error, 1=Skew, 2=Intersection, 3=Parallel
+var
+  collinear,solvable      : Boolean;
+  factor,distance,n_k     : Double;
+  k,d                     : TVector;
+
+begin
+  result:=0;
+  try
+    collinear:=false;
+    solvable:=true;
+//    logger.log('SVg:['+FloatToStr(SVg.x1)+','+FloatToStr(SVg.x2)+','+FloatToStr(SVg.x3)+']   '+'DVg:['+FloatToStr(DVg.x1)+','+FloatToStr(DVg.x2)+','+FloatToStr(DVg.x3)+']   '+'SVh:['+FloatToStr(SVh.x1)+','+FloatToStr(SVh.x2)+','+FloatToStr(SVh.x3)+']   '+'DVh:['+FloatToStr(DVh.x1)+','+FloatToStr(DVh.x2)+','+FloatToStr(DVh.x3)+']   ');
+
+    if (DVg.x1=0) AND (DVg.x2=0) AND (DVg.x3=0) then    //Error if direction vector = Zero Vector !
+      solvable:=false;
+
+    if (DVh.x1=0) AND (DVh.x2=0) AND (DVh.x3=0) then
+      solvable:=false;                                  //Error if direction vector = Zero Vector !
+
+    if solvable=true then                               //Check if collinear
+    begin
+      if (DVh.x1<>0) then
+        factor:=DVg.x1/DVh.x1
+      else
+        if (DVh.x2<>0) then
+          factor:=DVg.x2/DVh.x2
+        else
+          factor:=DVg.x3/DVh.x3;
+
+      if (DVh.x1*factor=DVg.x1) AND (DVh.x2*factor=DVg.x2) AND (DVh.x3*factor=DVg.x3) then
+        collinear:=true;
+
+      if (collinear=false) then             // Geraden sind nicht parallel und schon gar nicht identisch
+      begin
+        k:=vCrossProduct(DVg,DVh);
+        // Norm des Kreuzprodukts n_k berechnen = Bezogen auf eine Einheit
+        n_k:=sqrt(k.x1*k.x1+k.x2*k.x2+k.x3*k.x3);
+        // Differenzvektor der Einstiegspunkte berechnen
+        d:=vSubtraction(SVh,SVg);
+        // Abstand der Geraden = Differenzvektor auf Kreuzprodukt projizieren
+        distance:=abs(vScalarProduct(d,k))/n_k;
+        if (distance<>0) then
+        begin
+          result:=1;            // Skew
+        end
+        else
+        begin
+          result:=2;           // Intersection
+        end;
+      end
+      else
+      begin
+        result:=3;             // Parallel -> aber nicht identisch, da unterschiedliche Positionen der Augen
+      end;
+    end
+    else
+      result:=0;
+
+  except
+    on e:Exception do
+    raise Exception.CreateFmt('u3dVector: vCheckRelPos [%s]',[e.message]);
+  end;
+end;
+
+
+function vParallelDistance(SVg,DVg,SVh,DVh: TVector):Double;
+var     k,d     : TVector;
+        n_K,n_s : Double;
+begin
+  result:=0;
+  try
+    d.x1:=SVg.x1-SVh.x1;
+    d.x2:=SVg.x2-SVh.x2;
+    d.x3:=SVg.x3-SVh.x3;
+
+    // Kreuzprodukt aus Differenzvektor d und Richtungsvektor s bilden
+    k.x1:=d.x2*DVh.x3-d.x3*DVh.x2;
+    k.x2:=d.x3*DVh.x1-d.x1*DVh.x3;
+    k.x3:=d.x1*DVh.x2-d.x2*DVh.x1;
+
+    // Norm des Kreuzprodukts und des Richtungsvektors
+    n_k:=sqrt(k.x1*k.x1+k.x2*k.x2+k.x3*k.x3);
+    n_s:=sqrt(DVh.x1*DVh.x1+DVh.x2*DVh.x2+DVh.x3*DVh.x3);
+
+    // Quotient ergibt Abstand
+    result:=n_k/n_s;
+  except
+    on e:Exception do
+    raise Exception.CreateFmt('u3dVector: vParallelDistance [%s]',[e.message]);
+  end;
+end;
+
+function vIntersection(SVg,DVg,SVh,DVh: TVector): TVector;
+var
+         quotient   : Double;
+         sp         : TVector;
+         r          : Double;
+
+begin
+  result:=vector(0,0,0);
+  try
+
+//    logger.log('SVG: ['+FloatToStr(SVG.x1)+';'+FloatToStr(SVG.x2)+';'+FloatToStr(SVG.x3)+']');
+//    logger.log('DVG: ['+FloatToStr(DVG.x1)+';'+FloatToStr(DVG.x2)+';'+FloatToStr(DVG.x3)+']');
+//    logger.log('SVH: ['+FloatToStr(SVH.x1)+';'+FloatToStr(SVH.x2)+';'+FloatToStr(SVH.x3)+']');
+//    logger.log('DVH: ['+FloatToStr(DVH.x1)+';'+FloatToStr(DVH.x2)+';'+FloatToStr(DVH.x3)+']');
+
+    if (DVh.x1=0) or (DVh.x3:0) then
+    begin
+      ShowMessage('Division by Zero: DVh.x1:='+FloatToStr(DVh.x1)+', DVh.x3='+FloatToStr(DVh.x3));
+    end;
+
+    quotient:=(DVg.x1/DVh.x1)-(DVg.x3/DVh.x3);
+
+    if quotient<>0 then
+    begin
+      //m:=(SVg.x1*DVg.x2-SVg.x2*DVg.x1+DVg.x1*SVh.x2-SVh.x1*DVg.x2)/(DVh.x1*DVg.x2-DVh.x2*DVg.x1);
+      r:= ( (SVh.x1/DVh.x1)+(SVg.x3/DVh.x3)-(SVh.x3/DVh.x3)-(SVg.x1/DVh.x1) ) / ( (DVg.x1/DVh.x1)-(DVg.x3/DVh.x3) );
+      //logger.log('r: '+FloatToStr(r));
+      sp.x1:=SVh.x1+r*DVh.x1;
+      sp.x2:=SVh.x2+r*DVh.x2;
+      sp.x3:=SVh.x3+r*DVh.x3;
+      result:=sp;
+    end
+    else
+      logger.log('Intersection Quotient = 0');  // Ich vermute Schnittpunkt in einer Ebene macht Probleme;
+
+  except
+    on e:Exception do
+    raise Exception.CreateFmt('u3dVector: vIntersection [%s]',[e.message]);
+  end;
+end;
+
+function vSkewDistancePoint(SVg,DVg,SVh,DVh: TVector): TVector;  // SVg=support vector (g); DVg=direction vector(g); SVh=support vector (h); DVh=direction vector(h)
+var     ngh,nE1,nE2 : TVector;
+        u,v         : Double;
+        P,Q         : TVector;
+
+begin
+  result:=vector(0,0,0);
+  try
+    ngh := vCrossProduct(DVg,DVh);            // Normalenvektor aus Kreuzprodukt der Richtungsvektoren
+    nE1 := vCrossProduct(DVg,ngh);            // Normalenvektor auf Ebene 1
+    nE2 := vCrossProduct(DVh,ngh);            // Normalenvektor auf Ebene 2
+
+    u := -cosmosNormStuetzProdukt(SVg,SVh,nE2) / vScalarProduct(DVg,nE2);   // Parameter zur Bestimmung des Lotfußpunktes auf g
+    v :=  cosmosNormStuetzProdukt(SVg,SVh,nE1) / vScalarProduct(DVh,nE1);   // Parameter zur Bestimmung des Lotfußpunktes auf h
+
+
+    P := vPoint(SVg,DVg,u);
+    Q := vPoint(SVh,DVh,v);
+
+    result:=vector(round((P.x1+Q.x1)/2),round((P.x2+Q.x2)/2),round((P.x3+Q.x3)/2))
+
+  except
+    on e:Exception do
+    raise Exception.CreateFmt('u3DVector: vSkewDistancePoint [%s]',[e.message]);
+  end;
+
+end;
+
+
+//function vDistance(g,r,h,s: TVector): Integer;
+//var kollinear, loesbar: Boolean;
+//    faktor  : Double;
+//    k,d,sp  : TVector;
+//    n_K,n_s : Double;
+//    abstand : Double;
+//    m       : Double;
+//
+//begin
+//  abstand:=-2;
+//  kollinear:=false;
+//  loesbar:=true;
+//
+//  if (r.x1=0) AND (r.x2=0) AND (r.x3=0) then     //Error if direction vektor = Zero Vektor !
+//    loesbar:=false;
+//
+//  if (s.x1=0) AND (s.x2=0) AND (s.x3=0) then
+//    loesbar:=false;
+//                                                 //Error if direction vektor = Zero Vektor !
+//  if loesbar=true then
+//   begin
+//    // prüfen, ob die Richtungsvektoren kollinear sind
+//    if (s.x1<>0) then
+//      faktor:=r.x1/s.x1
+//    else
+//      if (s.x2<>0) then
+//        faktor:=r.x2/s.x2
+//       else
+//        faktor:=r.x3/s.x3;
+//
+//    //ShowMessage('Faktor: ' + FloatToSTr(faktor));
+//
+//    if (s.x1*faktor=r.x1) AND (s.x2*faktor=r.x2) AND (s.x3*faktor=r.x3) then
+//      kollinear:=true;
+//
+//    if (kollinear=false) then
+//      begin
+//        ShowMessage('Geraden sind nicht kollinear!');
+//        // Kreuzprodukt k der Richtungsvektoren berechnen
+//        k.x1:=r.x2*s.x3-r.x3*s.x2;
+//        k.x2:=r.x3*s.x1-r.x1*s.x3;
+//        k.x3:=r.x1*s.x2-r.x2*s.x1;
+//
+//        // Norm des Kreuzprodukts n_k berechnen
+//        n_k:=sqrt(k.x1*k.x1+k.x2*k.x2+k.x3*k.x3);
+//
+//        //ShowMessage('n_k:'+FloatToStr(n_k));
+//
+//        // Differenzvektor der Einstiegspunkte berechnen
+//        d.x1:=g.x1-h.x1;
+//        d.x2:=g.x2-h.x2;
+//        d.x3:=g.x3-h.x3;
+//
+//        //ShowMessage('d=('+FloatToStr(d.x1)+','+FloatToStr(d.x2)+','+FloatToStr(d.x3)+','+')');
+//
+//        // Abstand der Geraden = Differenzvektor auf Kreuzprodukt projizieren
+//        abstand:=abs(d.x1*k.x1+d.x2*k.x2+d.x3*k.x3)/n_k;
+//
+//        if (abstand<>0) then
+//          begin
+//            // Geraden windschief
+//            abstand:=abs(d.x1*k.x1+d.x2*k.x2+d.x3*k.x3)/n_k;
+//            ShowMessage('Windschief, Entfernung: ' + FloatToSTr(abstand));
+//            abstand:=-1
+//          end
+//        else
+//         begin
+//           // Schnittpunkt vorhanden
+//           //ShowMessage('Schnittpunkt vorhanden');
+//           m:=(g.x1*r.x2-g.x2*r.x1+r.x1*h.x2-h.x1*r.x2)/(s.x1*r.x2-s.x2*r.x1);
+//           sp.x1:=h.x1*1+m*s.x1;
+//           sp.x2:=h.x2*1+m*s.x2;
+//           sp.x3:=h.x3*1+m*s.x3;
+//           abstand:=0;   //da Schnittpunkt
+//           //ShowMessage('Geraden schneiden sich, daher Abstand = 0');
+//         end
+//
+//      end
+//    else
+//      begin
+//        // parallele Geraden, Abstand eines Einstiegspunkts von der
+//        // anderen Gerade berechnen
+//
+//        ShowMessage('Distance: parallel');
+//        d.x1:=g.x1-h.x1;
+//        d.x2:=g.x2-h.x2;
+//        d.x3:=g.x3-h.x3;
+//
+//        // Kreuzprodukt aus Differenzvektor d und Richtungsvektor s bilden
+//        k.x1:=d.x2*s.x3-d.x3*s.x2;
+//        k.x2:=d.x3*s.x1-d.x1*s.x3;
+//        k.x3:=d.x1*s.x2-d.x2*s.x1;
+//
+//        // Norm des Kreuzprodukts und des Richtungsvektors
+//        n_k:=sqrt(k.x1*k.x1+k.x2*k.x2+k.x3*k.x3);
+//        n_s:=sqrt(s.x1*s.x1+s.x2*s.x2+s.x3*s.x3);
+//
+////        ShowMessage('n_k:'+FloatToStr(n_k)+', n_s:'+FloatToStr(n_s));
+//
+//        // Quotient ergibt Abstand
+//        abstand:=n_k/n_s;
+////        ShowMessage('Geraden liegen parallel zu einander, daher Abstand = '+FloatToStr(abstand));
+//      end;
+//  end;
+//
+//    result:=round(abstand);
+//
+//end;
+
+function vVecToStr(a: TVector): String;
+begin
+  result:='('+FloatToStr(a.x1)+','+FloatToStr(a.x2)+','+FloatToStr(a.x3)+')';
+end;
+
+end.

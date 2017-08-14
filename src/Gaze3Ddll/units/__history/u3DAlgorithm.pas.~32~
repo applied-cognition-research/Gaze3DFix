@@ -1,0 +1,185 @@
+unit u3DAlgorithm;
+
+interface
+
+uses Math, SysUtils, Dialogs, u3DVector, CodeSiteLogging;
+
+function Calculate3dSVAlgorithm_SimilarTriangles(dEyes,dScreen,xGazeLeftEye,xGazeRightEye: Integer): Integer; // Korrigierter Dixon-Algorithmus
+function Calculate3dSVAlgorithm_TwoLines(xScreenCenter,xPosLeftEye,zPosLeftEye,xPosRightEye,zPosRightEye,xGazeLeftEye,xGazeRightEye: Integer): Integer; //Geradenschnittpunkt über Anstieg
+function Calculate3dSVAlgorithm_SkewLines(pvGL,dvGL,pvGR,dvGR: TVector): TVector;
+function Calculate3dSVAlgorithm_SkewLines_old(EL,ER,GL,GR: TVector): TVector;
+
+implementation
+
+function Calculate3dSVAlgorithm_SimilarTriangles(dEyes,dScreen,xGazeLeftEye,xGazeRightEye: Integer): Integer;
+var zGaze,dGaze:   Double;
+begin
+  try
+    dGaze:=xGazeRightEye-xGazeLeftEye;
+    if dEyes<>dGaze then
+    begin
+      zGaze:=(dGaze*dScreen)/(-dEyes+dGaze);    // Gaze depth, by similar triangles
+      Result:=round(zGaze);
+    end
+    else
+      Result:=0;
+
+  except
+    on e:Exception do
+    raise Exception.CreateFmt('u3DAlgorithm: Failed Calculate3dSVAlgorithm1: [%s]',[e.message]);
+  end;
+end;
+
+function Calculate3dSVAlgorithm_TwoLines(xScreenCenter,xPosLeftEye,zPosLeftEye,xPosRightEye,zPosRightEye,xGazeLeftEye,xGazeRightEye: Integer): Integer;
+var zGaze,mLE,mRE,tLE,tRE:   Double;
+    xRE1,yRE1,xRE2,yRE2,xLE1,yLE1,xLE2,yLE2:  Integer;
+begin
+  zgaze:=0;
+  try
+    ///////////////////
+    // SW Algorithmus
+    ///////////////////
+
+    //2D-Coordinate Plane for linear equation
+
+    xLE1:=zPosLeftEye;
+    yLE1:=-xPosLeftEye;
+    xLE2:=0;
+    yLE2:=xScreenCenter-xGazeLeftEye;
+    mLE:=(yLE2-yLE1)/(xLE2-xLE1);
+    tLE:=yLE2-(mLE*xLE2);
+
+    xRE1:=zPosRightEye;
+    yRE1:=-xPosRightEye;
+    xRE2:=0;
+    yRE2:=xScreenCenter-xGazeRightEye;
+    mRE:=(yRE2-yRE1)/(xRE2-xRE1);
+    tRE:=yRE2-(mRE*xRE2);
+
+    if mRE<>mLE then
+      zGaze:=(tLE-tRE)/(mRE-mLE);
+
+    Result:=round(zGaze);
+
+  except
+    on e:Exception do
+    raise Exception.CreateFmt('u3DAlgorithm: Failed Calculate3dSVAlgorithm2: [%s]',[e.message]);
+  end;
+end;
+
+function Calculate3dSVAlgorithm_SkewLines(pvGL,dvGL,pvGR,dvGR: TVector): TVector;    // pvEi = gaze position vector (i.e. posittion of cornea center
+                                                                                     // dvGi = gaze direction vector | i€{L,R}
+var xDepth,yDepth,zDepth      : Double;
+    vDepth                    : TVector;
+    relpos                    : Integer;
+begin
+  xDepth:=0;
+  yDepth:=0;
+  zDepth:=0;
+
+  try
+    /////////////////////////////////////////
+    // SW Algorithmus - Windschiefe Geraden
+    /////////////////////////////////////////
+
+    relpos:=vCheckRelPos(pvGL,dvGL,pvGR,dvGR);
+
+//    logger.log('relpos: '+IntToStr(relpos));
+
+    case relpos of
+
+    0: // ERROR
+       zDepth:=0;
+
+    1: // Skew Lines
+       begin
+         vDepth:=vSkewDistancePoint(pvGL,dvGL,pvGR,dvGR);
+         xDepth:=vDepth.x1;
+         yDepth:=vDepth.x2;
+         zDepth:=vDepth.x3;
+       end;
+
+    2: // Intersection
+       begin
+         vDepth:=vIntersection(pvGL,dvGL,pvGR,dvGR);
+         xDepth:=vDepth.x1;
+         yDepth:=vDepth.x2;
+         zDepth:=vDepth.x3;
+       end;
+
+    3: // Parallel
+         zDepth:=0;
+
+    end;
+
+    Result.x1:=xDepth;
+    Result.x2:=yDepth;
+    Result.x3:=zDepth;
+
+//    CodeSite.Send(0,'SkewLines Input:   pL='+FloatToStr(pvGL)+' dL= '+FloatToStr(dvGL)+' pR= '+FloatToStr(pvGR)+' dR= '+FloatToStr(dvGR));
+    CodeSite.Send(pvGL.x1);
+    CodeSite.Send(0,'SkewLines Results: x1='+FloatToStr(Result.x1)+' x2= '+FloatToStr(Result.x2)+' x3= '+FloatToStr(Result.x3));
+
+
+  except
+    on e:Exception do
+    raise Exception.CreateFmt('u3DAlgorithm: Failed Calculate3dSVAlgorithm_SkewLines: [%s]',[e.message]);
+  end;
+end;
+
+
+function Calculate3dSVAlgorithm_SkewLines_old(EL,ER,GL,GR: TVector): TVector;    // Ei=Ortsvektor der Augen und Pi=Orstvektor des Blickortes, wobei i€{L,R]}
+var xDepth,yDepth,zDepth      : Double;
+    vDepth                    : TVector;
+    relpos                    : Integer;
+begin
+  xDepth:=0;
+  yDepth:=0;
+  zDepth:=0;
+
+  try
+    /////////////////////////////////////////
+    // SW Algorithmus - Windschiefe Geraden II
+    /////////////////////////////////////////
+
+    relpos:=vCheckRelPos(EL,vMakeDirVector(EL,GL),ER,vMakeDirVector(ER,GR));
+
+//    logger.log('relpos: '+IntToStr(relpos));
+
+    case relpos of
+
+    0: // ERROR
+       zDepth:=0;
+
+    1: // Skew Lines
+       begin
+         vDepth:=vSkewDistancePoint(EL,vMakeDirVector(EL,GL),ER,vMakeDirVector(ER,GR));
+         xDepth:=vDepth.x1;
+         yDepth:=vDepth.x2;
+         zDepth:=vDepth.x3;
+       end;
+
+    2: // Intersection
+       begin
+         vDepth:=vIntersection(EL,vMakeDirVector(EL,GL),ER,vMakeDirVector(ER,GR));
+         xDepth:=vDepth.x1;
+         yDepth:=vDepth.x2;
+         zDepth:=vDepth.x3;
+       end;
+
+    3: // Parallel
+         zDepth:=0;
+
+    end;
+
+    Result.x1:=xDepth;
+    Result.x2:=yDepth;
+    Result.x3:=zDepth;
+
+  except
+    on e:Exception do
+    raise Exception.CreateFmt('u3DAlgorithm: Failed Calculate3dSVAlgorithm4: [%s]',[e.message]);
+  end;
+end;
+
+end.

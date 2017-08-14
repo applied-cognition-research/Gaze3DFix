@@ -1,0 +1,149 @@
+library Gaze3D;
+
+{ Important note about DLL memory management: ShareMem must be the
+  first unit in your library's USES clause AND your project's (select
+  Project-View Source) USES clause if your DLL exports any procedures or
+  functions that pass strings as parameters or function results. This
+  applies to all strings passed to and from your DLL--even those that
+  are nested in records and classes. ShareMem is the interface unit to
+  the BORLNDMM.DLL shared memory manager, which must be deployed along
+  with your DLL. To avoid using BORLNDMM.DLL, pass string information
+  using PChar or ShortString parameters. }
+
+uses
+  SysUtils,
+  Classes,
+  u3DVector,
+  u3DAlgorithm;
+
+{$R *.res}
+
+function CalculateGaze3DFromEyePos(x_EyePos_Left,
+                                   y_EyePos_Left,
+                                   z_EyePos_Left,
+
+                                   x_EyePos_Right,
+                                   y_EyePos_Right,
+                                   z_EyePos_Right,
+
+                                   x_GazePos_Left,
+                                   y_GazePos_Left,
+                                   z_GazePos_Left,
+
+                                   x_GazePos_Right,
+                                   y_GazePos_Right,
+                                   z_GazePos_Right: Int32;
+
+                               out x_Gaze3D,
+                                   y_Gaze3D,
+                                   z_Gaze3D: Int32): Int32; stdcall;
+
+var
+  vEL,vER :TVector;           // vectors left and right eye
+  vGL,vGR :TVector;           // vectors left and right gaze
+
+  v3DGazePosition: TVector;   // Result
+
+begin
+  try
+
+    vEL.x1:=x_EyePos_Left;
+    vEL.x2:=y_EyePos_Left;
+    vEL.x3:=z_EyePos_Left;
+
+    vER.x1:=x_EyePos_Right;
+    vER.x2:=y_EyePos_Right;
+    vER.x3:=z_EyePos_Right;
+
+    vGL.x1:=x_GazePos_Left;
+    vGL.x2:=y_GazePos_Left;
+    vGL.x3:=z_GazePos_Left;
+
+    vGR.x1:=x_GazePos_Right;
+    vGR.x2:=y_GazePos_Right;
+    vGR.x3:=z_GazePos_Right;
+
+
+    v3DGazePosition:=Calculate3dSVAlgorithm_SkewLines(vEL,vMakeDirVector(vEL,vGL),vER,vMakeDirVector(vER,vGR));
+
+    x_Gaze3D:=round(v3DGazePosition.x1);
+    y_Gaze3D:=round(v3DGazePosition.x2);
+    z_Gaze3D:=round(v3DGazePosition.x3);
+
+    Result:=0;
+
+  except
+    on e:Exception do
+    raise Exception.CreateFmt('CalclateGaze3DFromEyePos: [%s]',[e.message]);
+  end;
+
+end;
+
+function CalculateGaze3DFromGazeVectors (x_EyePos_Left,
+                                         y_EyePos_Left,
+                                         z_EyePos_Left,
+
+                                         x_Eyeball_Right,
+                                         y_Eyeball_Right,
+                                         z_Eyeball_Right,
+
+                                         x_GazeVector_Left,
+                                         y_GazeVector_Left,
+                                         z_GazeVector_Left,
+
+                                         x_GazeVector_Right,
+                                         y_GazeVector_Right,
+                                         z_GazeVector_Right: Int32;
+
+                                     out x_Gaze3D,
+                                         y_Gaze3D,
+                                         z_Gaze3D: Int32): Int32; stdcall;
+
+var
+  vEL,vER :TVector;           // vectors left and right eye
+  vGL,vGR :TVector;           // vectors left and right gaze
+
+  v3DGazePosition: TVector;   // Result
+
+begin
+  try
+
+    vEL.x1:=x_EyePos_Left;
+    vEL.x2:=y_EyePos_Left;
+    vEL.x3:=z_EyePos_Left;
+
+    vER.x1:=x_Eyeball_Right;
+    vER.x2:=y_Eyeball_Right;
+    vER.x3:=z_Eyeball_Right;
+
+    vGL.x1:=x_GazeVector_Left;
+    vGL.x2:=y_GazeVector_Left;
+    vGL.x3:=z_GazeVector_Left;
+
+    vGR.x1:=x_GazeVector_Right;
+    vGR.x2:=y_GazeVector_Right;
+    vGR.x3:=z_GazeVector_Right;
+
+
+    v3DGazePosition:=Calculate3dSVAlgorithm_SkewLines(vEL,vER,vGL,vGR);
+
+    x_Gaze3D:=round(v3DGazePosition.x1);
+    y_Gaze3D:=round(v3DGazePosition.x2);
+    z_Gaze3D:=round(v3DGazePosition.x3);
+
+    Result:=0;
+
+  except
+    on e:Exception do
+    raise Exception.CreateFmt('CalculateGaze3DFromGazeVectors: [%s]',[e.message]);
+  end;
+
+end;
+
+
+exports
+  CalculateGaze3DFromEyePos,
+  CalculateGaze3DFromGazeVectors;
+
+begin
+end.

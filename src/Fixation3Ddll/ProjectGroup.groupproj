@@ -1,0 +1,60 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{645742D4-2FE1-4E1C-A6A9-57C360735BD8}</ProjectGuid>
+		</PropertyGroup>
+		<ItemGroup>
+			<Projects Include="..\Gaze3Ddll\Gaze3D.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="Fixation3D.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="..\..\..\..\svnroot3\trunk\Projects\Gaze3D\Testanwendungen\02 - 3D Blickort\Blickort.dproj">
+				<Dependencies/>
+			</Projects>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Default.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<Default.Personality/>
+			</BorlandProject>
+		</ProjectExtensions>
+		<Target Name="Gaze3D">
+			<MSBuild Projects="..\Gaze3Ddll\Gaze3D.dproj"/>
+		</Target>
+		<Target Name="Gaze3D:Clean">
+			<MSBuild Projects="..\Gaze3Ddll\Gaze3D.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="Gaze3D:Make">
+			<MSBuild Projects="..\Gaze3Ddll\Gaze3D.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="Fixation3D">
+			<MSBuild Projects="Fixation3D.dproj"/>
+		</Target>
+		<Target Name="Fixation3D:Clean">
+			<MSBuild Projects="Fixation3D.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="Fixation3D:Make">
+			<MSBuild Projects="Fixation3D.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="Blickort">
+			<MSBuild Projects="..\..\..\..\svnroot3\trunk\Projects\Gaze3D\Testanwendungen\02 - 3D Blickort\Blickort.dproj"/>
+		</Target>
+		<Target Name="Blickort:Clean">
+			<MSBuild Projects="..\..\..\..\svnroot3\trunk\Projects\Gaze3D\Testanwendungen\02 - 3D Blickort\Blickort.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="Blickort:Make">
+			<MSBuild Projects="..\..\..\..\svnroot3\trunk\Projects\Gaze3D\Testanwendungen\02 - 3D Blickort\Blickort.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="Build">
+			<CallTarget Targets="Gaze3D;Fixation3D;Blickort"/>
+		</Target>
+		<Target Name="Clean">
+			<CallTarget Targets="Gaze3D:Clean;Fixation3D:Clean;Blickort:Clean"/>
+		</Target>
+		<Target Name="Make">
+			<CallTarget Targets="Gaze3D:Make;Fixation3D:Make;Blickort:Make"/>
+		</Target>
+		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')" Project="$(BDS)\Bin\CodeGear.Group.Targets"/>
+	</Project>

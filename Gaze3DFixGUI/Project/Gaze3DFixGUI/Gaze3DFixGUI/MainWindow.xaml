@@ -1,0 +1,194 @@
+﻿<Window x:Class="Gaze3DFixGUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Gaze3DFix GUI" Height="750" Width="700" Visibility="Visible" Closing="Window_Closing" Initialized="Window_Initialized" FontFamily="Arial">
+
+    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <Grid>
+            <Grid Width="660">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="100"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="30"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <TextBox Name="TB_InputFile" Height="30" Width="540" Margin="0,20,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center" Focusable="False" IsEnabled="True" IsReadOnly="True"/>
+                    <Button Name="B_InputFile" Content="Load File" Height="30" Width="100" Margin="560,20,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Click="B_InputFile_Click"/>
+                    <RadioButton GroupName="Mode" Name="RB_GazeAndFixations"  Content="Calculate 3D gaze points and 3D fixations" Margin="0,70,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center" IsChecked="True" Click="GazeAndFixationsClicked"/>
+                    <RadioButton GroupName="Mode" Name="RB_Gaze" Content="Calculate only 3D gaze points" Margin="280,70,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center" Click="GazeClicked"/>
+                    <RadioButton GroupName="Mode" Name="RB_Fixations" Content="Calculate only 3D fixations" Margin="495,70,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center" Click="FixationsClicked"/>
+                </Grid>
+                <Grid Grid.Column="0" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <TabControl>
+                        <TabItem Name="TI_Gaze" Header="Assign columns">
+                            <Grid>
+                                <Label Name="L_AssignColumnHelp" Content="Assign column number (starting with 1) of input file to parameters" Height="30" Width="450" Margin="20,20,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center"/>
+                                <CheckBox Name="CB_Header" Content="first line contains header" Width="150" Margin="25,68,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center" IsChecked="True"/>
+                                <Label Name="L_Delimiter" Content="Delimiter" Height="30" Width="60" Margin="20,100,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center"/>
+                                <RadioButton GroupName="Delimiter" Name="RB_DelimiterSemicolon" Content=";" Margin="170,108,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center" IsChecked="True" Click="DelimiterSemicolonClicked"/>
+                                <Label Name="L_DelimiterOr" Content="or" Height="30" Width="60" Margin="205,100,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center"/>
+                                <RadioButton GroupName="Delimiter" Name="RB_DelimiterTabulator" Content="TAB" Margin="240,108,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center" Click="DelimiterTabulatorClicked"/>
+                                <Label Name="L_NumberOfColumns" Content="Number of columns" Height="30" Width="120" Margin="20,140,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center"/>
+                                <TextBox Name="TB_NumberOfColumns" Height="30" Width="50" Margin="170,140,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center" Text="14" TextAlignment="Center" MaxLength="7" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus"/>
+                                <Label Name="L_NumberOfColumns_Hint" Content="(?)" Height="30" Width="30" Margin="220,140,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center">
+                                    <Label.ToolTip>
+                                        <ToolTip>
+                                            <StackPanel>
+                                                <TextBlock FontWeight="Bold">Number of columns</TextBlock>
+                                                <TextBlock>Please fill in the total number of columns in your input file.</TextBlock>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </Label.ToolTip>
+                                </Label>
+                                <TextBox x:Name="TB_Identifier" Text="1" Height="30" Width="50" Margin="500,60,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center" Opacity="1" Visibility="Visible" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <CheckBox x:Name="CB_Identifier" Width="100" Margin="355,68,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center" Unchecked="IdentifierUnChecked" Checked="IdentifierChecked" IsChecked="True" Content="Case Identifier" />
+                                <Label Name="L_IdentifierHint" Content="(?)" Height="30" HorizontalAlignment="Left" Margin="550,60,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="30">
+                                    <Label.ToolTip>
+                                        <ToolTip>
+                                            <StackPanel>
+                                                <TextBlock FontWeight="Bold">Case Identifier</TextBlock>
+                                                <TextBlock>Use a case identifier to seperate your data within a single input file into relevant cases e.g. trial or stimuli.</TextBlock>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </Label.ToolTip>
+                                </Label>
+                                <TextBox Name="TB_Participant" Height="30" HorizontalAlignment="Left" Margin="500,100,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="2" Opacity="1" Visibility="Visible" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <CheckBox Name="CB_Participant" HorizontalAlignment="Left" Margin="355,108,0,0"  VerticalAlignment="Top" VerticalContentAlignment="Center" Width="100" Unchecked="ParticipantUnChecked" Checked="ParticipantChecked" IsChecked="True" Content="Participant" />
+                                <TextBox x:Name="TB_Validity" Height="30" HorizontalAlignment="Left" Margin="500,140,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="15" Opacity="1" Visibility="Visible" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <Label Name="L_ValidityHint" Content="(?)" Height="30" HorizontalAlignment="Left" Margin="550,140,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="30">
+                                    <Label.ToolTip>
+                                        <ToolTip>
+                                            <StackPanel>
+                                                <TextBlock FontWeight="Bold">Validity</TextBlock>
+                                                <TextBlock>If desired, for validity a column containing 0 and 1 can be assigned <LineBreak/>
+                                                    with 0 marking invalid samples e.g. during a blink.</TextBlock>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </Label.ToolTip>
+                                </Label>
+                                <CheckBox x:Name="CB_Validity" HorizontalAlignment="Left" Margin="355,148,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="100" Unchecked="ValidityUnChecked" Checked="ValidityChecked" IsChecked="False" Content="Validity" />
+                                <Label Content="Left" Height="30" HorizontalAlignment="Left" Margin="170,200,0,0" Name="L_Left" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="50" />
+                                <Label Content="Right" Height="30" HorizontalAlignment="Left" Margin="240,200,0,0" Name="L_Right" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="50" />
+                                <Label Content="EyePosition X" Height="30" HorizontalAlignment="Left" Margin="20,230,0,0" Name="L_EyePosX" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="125" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="170,230,0,0" Name="TB_EyePosX_left" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="8" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="240,230,0,0" Name="TB_EyePosX_right" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="9" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <Label Content="EyePosition Y" Height="30" HorizontalAlignment="Left" Margin="20,270,0,0" Name="L_EyePosY" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="125" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="170,270,0,0" Name="TB_EyePosY_left" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="10" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="240,270,0,0" Name="TB_EyePosY_right" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="11" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <Label Content="EyePosition Z" Height="30" HorizontalAlignment="Left" Margin="20,310,0,0" Name="L_EyePosZ" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="125" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="170,310,0,0" Name="TB_EyePosZ_left" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="12" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="240,310,0,0" Name="TB_EyePosZ_right" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="13" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <Label Content="2D GazePosition X" Height="30" HorizontalAlignment="Left" Margin="20,350,0,0" Name="L_GazePosX" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="125" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="170,350,0,0" Name="TB_GazePosX_left" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="2" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="240,350,0,0" Name="TB_GazePosX_right" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="3" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <Label Content="2D GazePosition Y" Height="30" HorizontalAlignment="Left" Margin="20,390,0,0" Name="L_GazePosY" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="125" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="170,390,0,0" Name="TB_GazePosY_left" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="4" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="240,390,0,0" Name="TB_GazePosY_right" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="5" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <Label Content="2D GazePosition Z" Height="30" HorizontalAlignment="Left" Margin="20,430,0,0" Name="L_GazePosZ" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="125" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="170,430,0,0" Name="TB_GazePosZ_left" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="6" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="240,430,0,0" Name="TB_GazePosZ_right" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="7" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <Label Content="3D GazePosition X" Height="30" HorizontalAlignment="Left" Margin="349,230,0,0" Name="L_Gaze3DX" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="125" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="499,230,0,0" Name="TB_Gaze3DX" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="8" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <Label Content="3D GazePosition Y" Height="30" HorizontalAlignment="Left" Margin="349,270,0,0" Name="L_Gaze3DY" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="125" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="499,270,0,0" Name="TB_Gaze3DY" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="10" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <Label Content="3D GazePosition Z" Height="30" HorizontalAlignment="Left" Margin="349,310,0,0" Name="L_Gaze3DZ" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="125" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="499,310,0,0" Name="TB_Gaze3DZ" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="12" TextChanged="TB_TextChanged" LostFocus="TB_Column_LostFocus" TextAlignment="Center" MaxLength="7" />
+                                <TextBlock Height="100" Margin="355,360,0,0" TextWrapping="Wrap" Text="All positions must be integer values (with no thousands separator) in the same global three-dimensional coordinate system using the same measurement unit." VerticalAlignment="Top" Width="200" HorizontalAlignment="Left" LineHeight="20"/>
+                            </Grid>
+                        </TabItem>
+                        <TabItem Header="Fixation parameters" Name="TI_Fixations">
+                            <Grid>
+                                <Label Content="Set temporal threshold" Height="30" HorizontalAlignment="Left" Margin="20,20,0,0" Name="L_TemporalThreshold" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="150" />
+                                <Label Content="Duration-Threshold (ms)" Height="30" HorizontalAlignment="Left" Margin="40,140,0,0" Name="L_Duration" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="150" />
+                                <Label Content="100" Height="30" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Margin="235,140,0,0" Name="L_DurationValue" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="100" />
+                                <Label Content="Number of samples" Height="30" HorizontalAlignment="Left" Margin="40,60,0,0" Name="L_Samples" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="125" />
+                                <Label Content="(?)" Height="30" HorizontalAlignment="Left" Margin="310,60,0,0" Name="L_NumberSamples_Hint" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="30">
+                                    <Label.ToolTip>
+                                        <ToolTip Name="TT_NumberofSamples">
+                                            <StackPanel>
+                                                <TextBlock FontWeight="Bold">Number of samples</TextBlock>
+                                                <TextBlock>Define minimum number of samples (minimum 3).</TextBlock>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </Label.ToolTip>
+                                </Label>
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="260,60,0,0" Name="TB_Samples" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="25" TextChanged="TB_SamplesChanged" TextAlignment="Center" MaxLength="7" LostFocus="TB_Samples_LostFocus" />
+                                <Label Content="Frequency (Hz)" Height="30" HorizontalAlignment="Left" Margin="40,100,0,0" Name="L_Frequency" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="150" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="260,100,0,0" Name="TB_Frequency" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="250" TextChanged="TB_FrequencyChanged" TextAlignment="Center" MaxLength="7" LostFocus="TB_Frequency_LostFocus" />
+                                <Label Content="Set spatial threshold" Height="30" HorizontalAlignment="Left" Margin="360,20,0,0" Name="L_SpatialThreshold" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="150" />
+                                <Label Content="Dispersion-Threshold (° DEG)" Height="30" HorizontalAlignment="Left" Margin="380,60,0,0" Name="L_Dispersion" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="175" />
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="570,60,0,0" Name="TB_Dispersion" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="2" TextChanged="TB_DispersionChanged" LostFocus="TB_Dispersion_LostFocus" TextAlignment="Center" MaxLength="7" />
+
+                                <Label Content="Outliers and Invalids" Height="30" HorizontalAlignment="Left" Margin="20,200,0,0" Name="L_OutliersAndInvalids" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="150" />
+                                <Label Content="Max. number of consecutive outliers" Height="30" HorizontalAlignment="Left" Margin="40,240,0,0" Name="L_Outliers" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="210" />
+                                <Label Content="(?)" Height="30" HorizontalAlignment="Left" Margin="310,240,0,0" Name="L_NumberOutliers_Hint" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="30">
+                                    <Label.ToolTip>
+                                        <ToolTip Name="TT_NumberofOutliers">
+                                            <StackPanel>
+                                                <TextBlock FontWeight="Bold">Max. number of consecutive outliers</TextBlock>
+                                                <TextBlock>Define the max number of consecutive samples that may go outside the ellipsoid tolerance area.</TextBlock>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </Label.ToolTip>
+                                </Label>
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="260,240,0,0" Name="TB_Outliers" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="1" TextChanged="TB_TextChanged" TextAlignment="Center" MaxLength="7" LostFocus="TB_Outliers_LostFocus"/>
+                                <Label Content="Max. number of consecutive invalids" Height="30" HorizontalAlignment="Left" Margin="40,280,0,0" Name="L_Invalids" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="210" />
+                                <Label Content="(?)" Height="30" HorizontalAlignment="Left" Margin="310,280,0,0" Name="L_NumberInvalids_Hint" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="30">
+                                    <Label.ToolTip>
+                                        <ToolTip Name="TT_NumberofInvalids">
+                                            <StackPanel>
+                                                <TextBlock FontWeight="Bold">Max. number of invalids</TextBlock>
+                                                <TextBlock>Define the max number of consecutive samples that may go untracked within a fixation.</TextBlock>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </Label.ToolTip>
+                                </Label>
+                                <TextBox Height="30" HorizontalAlignment="Left" Margin="260,280,0,0" Name="TB_Invalids" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="50" Text="3" TextChanged="TB_TextChanged" TextAlignment="Center" MaxLength="7" LostFocus="TB_Invalids_LostFocus"/>
+
+                                <Label Content="Handle special fixation cases" Height="30" HorizontalAlignment="Left" Margin="20,340,0,0" Name="L_SpecialFixationCases" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="200" />
+                                <CheckBox Name="CB_SpecialFixationCaseCrossing" Content="Include case crossing fixations (see case identifier)" Width="500" Margin="60,388,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center" IsChecked="True"/>
+                                <CheckBox Name="CB_SpecialFixationCaseStartFile" Content="Include fixation starting with first sample of the input file" Width="500" Margin="60,428,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" VerticalContentAlignment="Center" IsChecked="True"/>
+                            </Grid>
+                        </TabItem>
+                        <TabItem Header="Output" Name="TI_Output">
+                            <Grid>
+                                <Label Content="Output file type:" Height="30" HorizontalAlignment="Left" Margin="20,20,0,0" Name="L_OutputFileType" VerticalAlignment="Top" VerticalContentAlignment="Center" Width="100" />
+                                <RadioButton GroupName="OutputFileType" Name="RB_OutputCSV"  Content=".csv" HorizontalAlignment="Left" Margin="140,28,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center" IsChecked="True"/>
+                                <RadioButton GroupName="OutputFileType" Name="RB_OutputTXT" Content=".txt" HorizontalAlignment="Left" Margin="220,28,0,0" VerticalAlignment="Top" VerticalContentAlignment="Center"/>
+                                <CheckBox Height="15" HorizontalAlignment="Left" Margin="25,68,0,0" Name="CB_OpenOutputFile" VerticalAlignment="Top" VerticalContentAlignment="Top" Width="200" IsChecked="False" Content="Open output file(s)" Grid.ColumnSpan="2"/>
+                            </Grid>
+                        </TabItem>
+                    </TabControl>
+                </Grid>
+                <Grid Grid.Column="0" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#7C000000">
+                    <Button Content="Calculate" Height="40" Margin="0,10,0,0" Name="B_Calculate" Width="200" FontFamily="Arial" FontSize="12" HorizontalContentAlignment="Center" Click="B_Calculate_Click" HorizontalAlignment="Center" VerticalAlignment="Top" />
+                    <Button Content="Cancel" Height="40" Margin="0,10,0,0" Name="B_Cancel" VerticalAlignment="Top" HorizontalContentAlignment="Center" Width="200" Visibility="Hidden" Click="B_Cancel_Click" HorizontalAlignment="Center" />
+                </Grid>
+                <Rectangle Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="rectangle3" Stroke="White" Fill="White" Opacity="0.5" StrokeThickness="0" Visibility="Hidden" />
+                <StatusBar Grid.Column="0" Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <Grid Width="650" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="60"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="250"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="Status:" Height="25" HorizontalAlignment="Left" Margin="0,0,0,0" Name="L_Status" VerticalAlignment="Top" Width="50" FontSize="11" FontFamily="Arial" />
+                        <Label Grid.Column="1" Content="" Height="25" HorizontalAlignment="Left" Margin="0,0,0,0" Name="L_StatusOut" VerticalAlignment="Top" Width="200" DataContext="{Binding}" FontSize="11" FontFamily="Arial" />
+                        <ProgressBar Grid.Column="2" Height="25" HorizontalAlignment="Right" Name="ProgressBar_Status" VerticalAlignment="Top" Width="100" SmallChange="1" Visibility="Hidden" HorizontalContentAlignment="Left" />
+                    </Grid>
+                </StatusBar>
+            </Grid>
+
+            <Rectangle Height="140" Margin="0,0,0,0" Name="R_Done" Stroke="Black" Width="300" Fill="White" Visibility="Hidden" StrokeThickness="1" />
+            <Button Content="OK" Height="40" Margin="0,50,0,0" Name="B_Done" Width="200" Visibility="Hidden" Click="B_Done_Click" />
+            <Label Content="Done."  Height="33" Margin="0,-50,0,0" Name="L_Done" HorizontalContentAlignment="Center" Width="220" Visibility="Hidden"/>
+        </Grid>
+    </ScrollViewer>
+</Window>

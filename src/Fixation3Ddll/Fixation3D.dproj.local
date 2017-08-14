@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899.12.30 00:00:00.000.398,=D:\Devel\GitHub\Gaze3DFix\src\Fixation3Ddll\units\FixFuncClass3dCalcByEllipsoidWP.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.665,=D:\Devel\svnroot3\trunk\Unit2.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.624,D:\Devel\svnroot3\trunk\Projects\Gaze3D\Fixation3Ddll\Fixation3D.dproj=D:\Devel\svnroot3\trunk\Project1.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.301,D:\Devel\GitHub\Gaze3DFix\src\Fixation3Ddll\units\FixFuncClass3dCalcByEllipsoid.pas=D:\Devel\GitHub\Gaze3DFix\src\Fixation3Ddll\units\FixFuncClass3dCalcByEllipsoidWP.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.916,=D:\Devel\svnroot3\trunk\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.571,=D:\Devel\svnroot3\trunk\Projects\Gaze3D\3D Fixation Detection\lib\FixFuncClass3dCalcByEllipsoidWP.pas</Transaction>
+  </Transactions>
+	<ProjectSortOrder AutoSort="0" SortType="0">
+    <File Path="units"/>
+    <File Path="units\FixFuncClass3dCalcByEllipsoid.pas"/>
+  </ProjectSortOrder>
+</BorlandProject>
